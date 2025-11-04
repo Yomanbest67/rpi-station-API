@@ -4,6 +4,9 @@ import ltr390
 
 app = Flask(__name__)
 
+with app.app_context():
+    dht22.init_sensor()
+
 @app.route('/')
 def index():
     return jsonify({'message': 'Hello, World!'}), 200
@@ -24,6 +27,7 @@ def data():
         }), 200
 
     except Exception as e:
+        print(e)
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
