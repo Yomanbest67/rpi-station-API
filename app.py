@@ -17,12 +17,12 @@ def data():
         uvi = ltr390.getUvi()
 
         return jsonify({
-        'temperature': temperature,
-        'humidity': humidity, 
-        'lux': lux, 
-        'uvi': uvi
-    }), 200
-    
+            'temperature': temperature,
+            'humidity': humidity, 
+            'lux': lux, 
+            'uvi': uvi
+        }), 200
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
