@@ -1,6 +1,7 @@
+import board
 import adafruit_dht
 
-dhtSensor = adafruit_dht.DHT22
+dhtSensor = adafruit_dht.DHT22(board.D4)
 dhtPin = 4
 
 def getTempAndHumidity():
