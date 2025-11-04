@@ -5,7 +5,7 @@ dhtSensor = None
 
 def init_sensor():
     global dhtSensor
-    dhtSensor = adafruit_dht.DHT22(board.D4)
+    dhtSensor = adafruit_dht.DHT22(board.D4, use_pulseio=False)
 
 def getTempAndHumidity():
     return dhtSensor.temperature, dhtSensor.humidity
