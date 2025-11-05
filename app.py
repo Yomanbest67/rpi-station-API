@@ -14,14 +14,12 @@ def index():
 @app.route('/data')
 def data():
     try:
-        temperature = dht22.getTemperature()
-        humidity = dht22.getHumidity()
+        weatherData = dht22.getAll()
         lux = ltr390.getLux()
         uvi = ltr390.getUvi()
 
         return jsonify({
-            'temperature': temperature,
-            'humidity': humidity, 
+            'weatherData': weatherData,
             'lux': lux, 
             'uvi': uvi
         }), 200
