@@ -1,4 +1,6 @@
 from flask import Flask, jsonify
+from apscheduler.schedulers.background import BackgroundScheduler
+import datetime
 import dht22
 import ltr390
 
@@ -6,6 +8,13 @@ app = Flask(__name__)
 
 with app.app_context():
     dht22.init_sensor()
+
+def scheduled_task():
+    print("Ping", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=scheduled_task, trigger="interval", hours=1)
+scheduler.start()
 
 @app.route('/')
 def index():
