@@ -21,12 +21,13 @@ def scheduled_task():
     
     attempts = 0
     recordSuccess = False
-    while attempts < 10 and not recordSuccess:
+    
+    while not recordSuccess or attempts < 10:
         try:
             timestamp, weatherData, lux, uvi = getData()
 
             db.insert({ 'timestamp': timestamp, 'weatherData': weatherData, 'lux': lux, 'uvi': uvi })
-            
+
             recordSuccess = True
             print(f"Data recorded at {timestamp}")
         except Exception as e:
