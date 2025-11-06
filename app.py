@@ -22,9 +22,9 @@ def scheduled_task():
     attempts = 0
     while attempts < 10:
         try:
-            data = getData()
+            timestamp, weatherData, lux, uvi = getData()
 
-            db.insert(data)
+            db.insert({ 'timestamp': timestamp, 'weatherData': weatherData, 'lux': lux, 'uvi': uvi })
         except Exception as e:
             print(f"Error during scheduled task: {e}")
             attempts += 1
