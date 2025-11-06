@@ -22,7 +22,7 @@ def scheduled_task():
     attempts = 0
     recordSuccess = False
     
-    while not recordSuccess or attempts < 10:
+    while not recordSuccess and attempts < 10:
         try:
             timestamp, weatherData, lux, uvi = getData()
 
@@ -71,4 +71,4 @@ def history():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
