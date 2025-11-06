@@ -1,16 +1,34 @@
 from flask import Flask, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
+from tinydb import TinyDB, Query
 import datetime
 import dht22
 import ltr390
 
 app = Flask(__name__)
+db = TinyDB('weather_data.json')
 
 with app.app_context():
     dht22.init_sensor()
 
 def scheduled_task():
-    print("Ping", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    def getData():
+        weatherData = dht22.getAll()
+        lux = ltr390.getLux()
+        uvi = ltr390.getUvi()
+        timestamp = datetime.datetime.now().isoformat()
+        return timestamp, weatherData, lux, uvi
+    
+    attempts = 0
+    while attempts < 10:
+        try:
+            data = getData()
+
+            db.insert(data)
+        except Exception as e:
+            print(f"Error during scheduled task: {e}")
+            attempts += 1
+
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=scheduled_task, trigger="interval", hours=1)
@@ -32,6 +50,16 @@ def data():
             'lux': lux, 
             'uvi': uvi
         }), 200
+
+    except Exception as e:
+        print(e)
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/data/history')
+def history():
+    try:
+        all_data = db.all()
+        return jsonify(all_data), 200
 
     except Exception as e:
         print(e)
