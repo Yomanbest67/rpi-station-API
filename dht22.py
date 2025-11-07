@@ -39,7 +39,7 @@ def dewPoint(temperature, humidity):
 
 def getAll(retries = 10, delay = 2):
 
-    for i in range(retries):
+    for _ in range(retries):
         humidity = dhtSensor.humidity
         temperature = dhtSensor.temperature
 
@@ -55,4 +55,4 @@ def getAll(retries = 10, delay = 2):
         else:
             time.sleep(delay)
 
-        return None, None
+    return None, None
