@@ -12,28 +12,17 @@ with app.app_context():
     dht22.init_sensor()
 
 def scheduled_task():
-    def getData():
+    weatherData = dht22.getAll()
+    lux = ltr390.getLux()
+    uvi = ltr390.getUvi()
+    timestamp = datetime.datetime.now().isoformat()
+
+    if weatherData is not None:
+        db.insert({'timestamp': timestamp, 'weatherData': weatherData, 'lux': lux, 'uvi': uvi})
+        print(f"Data logged at {timestamp}")
+    else:
         weatherData = dht22.getAll()
-        lux = ltr390.getLux()
-        uvi = ltr390.getUvi()
-        timestamp = datetime.datetime.now().isoformat()
-        return timestamp, weatherData, lux, uvi
-    
-    attempts = 0
-    recordSuccess = False
-    
-    while not recordSuccess and attempts < 10:
-        try:
-            timestamp, weatherData, lux, uvi = getData()
-
-            db.insert({ 'timestamp': timestamp, 'weatherData': weatherData, 'lux': lux, 'uvi': uvi })
-
-            recordSuccess = True
-            print(f"Data recorded at {timestamp}")
-        except Exception as e:
-            print(f"Error during scheduled task: {e}")
-            attempts += 1
-
+ 
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=scheduled_task, trigger="interval", hours=1)
@@ -71,4 +60,5 @@ def history():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
+    app.json.compact = False
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)

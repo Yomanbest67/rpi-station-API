@@ -1,5 +1,6 @@
 import board
 import adafruit_dht
+import time
 
 dhtSensor = None
 
@@ -36,13 +37,22 @@ def dewPoint(temperature, humidity):
     dewPoint = temperature - ((100 - humidity) / 5)
     return dewPoint
 
-def getAll():
-    temperature = getTemperature()
-    humidity = getHumidity()
-    return {
-        'temperature': temperature,
-        'humidity': humidity,
-        'humidex': humidex(temperature, humidity),
-        'temperature_feels_like': feelsLikeTemp(temperature, humidity),
-        'dew_point': dewPoint(temperature, humidity)
-    }
+def getAll(retries = 10, delay = 2):
+
+    for i in range(retries):
+        humidity = dhtSensor.humidity
+        temperature = dhtSensor.temperature
+
+        if humidity is not None and temperature is not None:
+        
+            return {
+                'temperature': temperature,
+                'humidity': humidity,
+                'humidex': humidex(temperature, humidity),
+                'temperature_feels_like': feelsLikeTemp(temperature, humidity),
+                'dew_point': dewPoint(temperature, humidity)
+            }
+        else:
+            time.sleep(delay)
+
+        return None, None
