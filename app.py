@@ -59,10 +59,12 @@ def history():
 
     if not queryParams:
         queryResult = db.all()
-        return jsonify(queryResult), 200
+        sortedQueryResult = sorted(queryResult, key=lambda x: datetime.datetime.fromisoformat(x['timestamp']), reverse=True)
+
+        return jsonify(sortedQueryResult), 200
 
     filters = {}
-    sortOrder = queryParams.get('sort', 'asc').lower()
+    sortOrder = queryParams.get('sort').lower()
 
     for key, value in queryParams.items():
         if key == 'date':
@@ -76,11 +78,13 @@ def history():
                     filters['timestamp'] = parsedDate
                 except ValueError:
                     return jsonify({'error': 'Invalid date format. Use ISO 8601 or DD-MM-YYYY.'}), 400
+        elif key == 'sort':
+            continue
         else:
             filters[key] = value
 
     conditions = [
-        (query[key].matches(value) for key, value in filters.items())
+        query[key].matches(value) for key, value in filters.items()
     ]
 
     if conditions:
@@ -89,9 +93,9 @@ def history():
     results = db.search(combinedConditions) if conditions else db.all()
 
     if sortOrder == 'desc':
-        queryResult = sorted(results, key=lambda x: x['timestamp'], reverse=True)
+        queryResult = sorted(results, key=lambda x: datetime.datetime.fromisoformat(x['timestamp']), reverse=True)
     else:
-        queryResult = sorted(results, key=lambda x: x['timestamp'])
+        queryResult = sorted(results, key=lambda x: datetime.datetime.fromisoformat(x['timestamp']))
 
     return jsonify(queryResult), 200
 
