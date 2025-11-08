@@ -51,8 +51,13 @@ def data():
     
 @app.route('/data/history')
 def history():
+    global db
     queryParams = request.args
     query = Query()
+
+    if not queryParams:
+        queryResult = db.all()
+        return jsonify(queryResult), 200
 
     filters = {}
     sortOrder = queryParams.get('sort', 'asc').lower()
@@ -73,11 +78,11 @@ def history():
             filters[key] = value
 
     if sortOrder == 'desc':
-        db = db.search(query(**filters).order_by('-timestamp'))
+        queryResult = db.search(query(**filters).order_by('-timestamp'))
     else:
-        db = db.search(query(**filters).order_by('timestamp'))
+        queryResult = db.search(query(**filters).order_by('timestamp'))
 
-    return jsonify(db), 200
+    return jsonify(queryResult), 200
 
 if __name__ == '__main__':
     app.json.compact = False
