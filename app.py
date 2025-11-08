@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
+from functools import reduce
+import operator
 from tinydb import TinyDB, Query
 import datetime
 import dht22
@@ -66,21 +68,30 @@ def history():
         if key == 'date':
             try:
                 parsedDate = datetime.datetime.fromisoformat(value)
-                filters['timestamp'] = lambda t: t.startswith(parsedDate.date().isoformat())
+                filters['timestamp'] = parsedDate.strftime('%Y-%m-%d')
             except ValueError:
                 try:
                     parsedDate = datetime.datetime.strptime(value, '%d-%m-%Y')
                     parsedDate = parsedDate.strftime('%Y-%m-%d')
-                    filters['timestamp'] = lambda t: t.startswith(parsedDate)
+                    filters['timestamp'] = parsedDate
                 except ValueError:
                     return jsonify({'error': 'Invalid date format. Use ISO 8601 or DD-MM-YYYY.'}), 400
         else:
             filters[key] = value
 
+    conditions = [
+        (query[key].matches(value) for key, value in filters.items())
+    ]
+
+    if conditions:
+        combinedConditions = reduce(operator.and_, conditions)
+
+    results = db.search(combinedConditions) if conditions else db.all()
+
     if sortOrder == 'desc':
-        queryResult = db.search(query(**filters).order_by('-timestamp'))
+        queryResult = sorted(results, key=lambda x: x['timestamp'], reverse=True)
     else:
-        queryResult = db.search(query(**filters).order_by('timestamp'))
+        queryResult = sorted(results, key=lambda x: x['timestamp'])
 
     return jsonify(queryResult), 200
 
