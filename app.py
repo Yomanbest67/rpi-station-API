@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
 from tinydb import TinyDB, Query
 import datetime
@@ -51,13 +51,33 @@ def data():
     
 @app.route('/data/history')
 def history():
-    try:
-        all_data = db.all()
-        return jsonify(all_data), 200
+    queryParams = request.args
+    query = Query()
 
-    except Exception as e:
-        print(e)
-        return jsonify({'error': str(e)}), 500
+    filters = {}
+    sortOrder = queryParams.get('sort', 'asc').lower()
+
+    for key, value in queryParams.items():
+        if key == 'date':
+            try:
+                parsedDate = datetime.datetime.fromisoformat(value)
+                filters['timestamp'] = lambda t: t.startswith(parsedDate.date().isoformat())
+            except ValueError:
+                try:
+                    parsedDate = datetime.datetime.strptime(value, '%d-%m-%Y')
+                    parsedDate = parsedDate.strftime('%Y-%m-%d')
+                    filters['timestamp'] = lambda t: t.startswith(parsedDate)
+                except ValueError:
+                    return jsonify({'error': 'Invalid date format. Use ISO 8601 or DD-MM-YYYY.'}), 400
+        else:
+            filters[key] = value
+
+    if sortOrder == 'desc':
+        db = db.search(query(**filters).order_by('-timestamp'))
+    else:
+        db = db.search(query(**filters).order_by('timestamp'))
+
+    return jsonify(db), 200
 
 if __name__ == '__main__':
     app.json.compact = False

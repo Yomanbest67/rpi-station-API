@@ -37,9 +37,9 @@ def dewPoint(temperature, humidity):
     dewPoint = temperature - ((100 - humidity) / 5)
     return dewPoint
 
-def getAll(retries = 10, delay = 2):
+def getAll(retries = 15, delay = 2):
 
-    for _ in range(retries):
+    for attempt in range(retries):
         humidity = dhtSensor.humidity
         temperature = dhtSensor.temperature
 
@@ -53,6 +53,6 @@ def getAll(retries = 10, delay = 2):
                 'dew_point': dewPoint(temperature, humidity)
             }
         else:
-            time.sleep(delay)
+            time.sleep(delay * (2 ** attempt)) # Exponential backoff
 
     return None, None
