@@ -24,18 +24,28 @@ def scheduled_task(retries = 15, delay = 2):
 
             if weatherData is not None:
                 record = {
-                    'timestamp': datetime.datetime.now().isoformat(),
-                    'temperature': weatherData['temperature'],
-                    'humidity': weatherData['humidity'],
-                    'humidex': weatherData['humidex'],
-                    'temperature_feels_like': weatherData['temperature_feels_like'],
-                    'dew_point': weatherData['dew_point'],
                     'lux': lux,
-                    'uvi': uvi
+                    'uvi': uvi,
+                    'timestamp': datetime.datetime.now().isoformat(),
+                    weatherData: {
+                        'temperature': weatherData['temperature'],
+                        'humidity': weatherData['humidity'],
+                        'humidex': weatherData['humidex'],
+                        'temperature_feels_like': weatherData['temperature_feels_like'],
+                        'dew_point': weatherData['dew_point'],
+                    }
                 }
 
-                db.insert(record)
-                print(f"Data recorded at {record['timestamp']}")
+                currentHour = datetime.datetime.now().strftime('%Y-%m-%dT%H')
+                existingEntry = db.search(Query().timestamp.matches(currentHour))
+
+                if existingEntry:
+                    db.update(record, Query().timestamp.matches(currentHour))
+                    print(f"Data updated at {record['timestamp']}")
+                else:
+                    db.insert(record)
+                    print(f"Data recorded at {record['timestamp']}")
+
                 return
         except Exception as e:
             print(f"[{time.ctime()}] Attempt {attempt + 1} failed: {e}")
