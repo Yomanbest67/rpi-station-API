@@ -17,19 +17,29 @@ with app.app_context():
 def scheduled_task(retries = 15, delay = 2):
     
     for attempt in range(retries):
-        weatherData = dht22.getAll()
-        lux = ltr390.getLux()
-        uvi = ltr390.getUvi()
-        timestamp = datetime.datetime.now().isoformat()
+        try:
+            weatherData = dht22.getAll()
+            lux = ltr390.getLux()
+            uvi = ltr390.getUvi()
 
-        if weatherData is not None:
-            db.insert({'timestamp': timestamp, 'weatherData': weatherData, 'lux': lux, 'uvi': uvi})
-            print(f"Data logged at {timestamp}")
-            break
-        else:
-            print(f"Failed to read sensor data. Attempt {attempt + 1} of {retries}. Retrying in {delay + attempt} seconds...")
+            if weatherData is not None:
+                record = {
+                    'timestamp': datetime.datetime.now().isoformat(),
+                    'temperature': weatherData['temperature'],
+                    'humidity': weatherData['humidity'],
+                    'humidex': weatherData['humidex'],
+                    'temperature_feels_like': weatherData['temperature_feels_like'],
+                    'dew_point': weatherData['dew_point'],
+                    'lux': lux,
+                    'uvi': uvi
+                }
+
+                db.insert(record)
+                print(f"Data recorded at {record['timestamp']}")
+                return
+        except Exception as e:
+            print(f"[{time.ctime()}] Attempt {attempt + 1} failed: {e}")
             time.sleep(delay + attempt)
-            continue
  
 
 scheduler = BackgroundScheduler()
