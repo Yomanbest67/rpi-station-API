@@ -37,22 +37,18 @@ def dewPoint(temperature, humidity):
     dewPoint = temperature - ((100 - humidity) / 5)
     return dewPoint
 
-def getAll(retries = 15, delay = 2):
+def getAll():
+    humidity = dhtSensor.humidity
+    temperature = dhtSensor.temperature
 
-    for attempt in range(retries):
-        humidity = dhtSensor.humidity
-        temperature = dhtSensor.temperature
-
-        if humidity is not None and temperature is not None:
-        
-            return {
-                'temperature': temperature,
-                'humidity': humidity,
-                'humidex': humidex(temperature, humidity),
-                'temperature_feels_like': feelsLikeTemp(temperature, humidity),
-                'dew_point': dewPoint(temperature, humidity)
-            }
-        else:
-            time.sleep(delay * (2 ** attempt)) # Exponential backoff
-
-    return None, None
+    if humidity is not None and temperature is not None:
+    
+        return {
+            'temperature': temperature,
+            'humidity': humidity,
+            'humidex': humidex(temperature, humidity),
+            'temperature_feels_like': feelsLikeTemp(temperature, humidity),
+            'dew_point': dewPoint(temperature, humidity)
+        }
+    else:
+        return None, None

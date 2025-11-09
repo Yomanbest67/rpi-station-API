@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
 from functools import reduce
 import operator
+import time
 from tinydb import TinyDB, Query
 import datetime
 import dht22
@@ -13,21 +14,25 @@ db = TinyDB('weather_data.json')
 with app.app_context():
     dht22.init_sensor()
 
-def scheduled_task():
-    weatherData = dht22.getAll()
-    lux = ltr390.getLux()
-    uvi = ltr390.getUvi()
-    timestamp = datetime.datetime.now().isoformat()
-
-    if weatherData is not None:
-        db.insert({'timestamp': timestamp, 'weatherData': weatherData, 'lux': lux, 'uvi': uvi})
-        print(f"Data logged at {timestamp}")
-    else:
+def scheduled_task(retries = 15, delay = 2):
+    
+    for attempt in range(retries):
         weatherData = dht22.getAll()
+        lux = ltr390.getLux()
+        uvi = ltr390.getUvi()
+        timestamp = datetime.datetime.now().isoformat()
+
+        if weatherData is not None:
+            db.insert({'timestamp': timestamp, 'weatherData': weatherData, 'lux': lux, 'uvi': uvi})
+            print(f"Data logged at {timestamp}")
+        else:
+            print(f"Failed to read sensor data. Attempt {attempt + 1} of {retries}. Retrying in {delay + attempt} seconds...")
+            time.sleep(delay + attempt)
+            continue
  
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=scheduled_task, trigger="interval", hours=1)
+scheduler.add_job(func=scheduled_task, trigger="interval", hours=1, max_instances=1)
 scheduler.start()
 
 @app.route('/')
