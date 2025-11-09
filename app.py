@@ -25,6 +25,7 @@ def scheduled_task(retries = 15, delay = 2):
         if weatherData is not None:
             db.insert({'timestamp': timestamp, 'weatherData': weatherData, 'lux': lux, 'uvi': uvi})
             print(f"Data logged at {timestamp}")
+            break
         else:
             print(f"Failed to read sensor data. Attempt {attempt + 1} of {retries}. Retrying in {delay + attempt} seconds...")
             time.sleep(delay + attempt)
