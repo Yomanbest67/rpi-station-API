@@ -27,13 +27,7 @@ def scheduled_task(retries = 15, delay = 2):
                     'lux': lux,
                     'uvi': uvi,
                     'timestamp': datetime.datetime.now().isoformat(),
-                    weatherData: {
-                        'temperature': weatherData['temperature'],
-                        'humidity': weatherData['humidity'],
-                        'humidex': weatherData['humidex'],
-                        'temperature_feels_like': weatherData['temperature_feels_like'],
-                        'dew_point': weatherData['dew_point'],
-                    }
+                    'weatherData': weatherData
                 }
 
                 currentHour = datetime.datetime.now().strftime('%Y-%m-%dT%H')
