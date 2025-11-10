@@ -47,7 +47,7 @@ def scheduled_task(retries = 15, delay = 2):
  
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=scheduled_task, trigger="interval", hours=1, max_instances=1)
+scheduler.add_job(func=scheduled_task, trigger="cron", minute='0, 25, 50', max_instances=1)
 scheduler.start()
 
 @app.route('/')
