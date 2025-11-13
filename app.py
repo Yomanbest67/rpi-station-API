@@ -135,6 +135,32 @@ def history():
 
     return jsonify(queryResult), 200
 
+@app.route('/data/logs')
+def logs():
+    baseFile = 'rpi_station.log'
+    logDate = request.args.get('date')
+
+    if logDate:
+        try:
+            parsedDate = datetime.datetime.fromisoformat(logDate)
+            logFile = f"{baseFile}.{parsedDate.strftime('%Y-%m-%d')}"
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use ISO 8601.'}), 400
+    else:
+        logFile = baseFile
+
+    try:
+        with open(logFile, 'r') as f:
+            logData = f.read()
+
+        return jsonify({
+            'file': logFile,
+            'log': logData.splitlines()
+        }), 200
+
+    except FileNotFoundError:
+        return jsonify({'error': 'Log file not found.'}), 404
+
 if __name__ == '__main__':
     app.json.compact = False
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
