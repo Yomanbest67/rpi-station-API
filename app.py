@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
 from functools import reduce
 import operator
+import logging
+from logging.handlers import TimedRotatingFileHandler
 import time
 from tinydb import TinyDB, Query
 import datetime
@@ -10,6 +12,19 @@ import ltr390
 
 app = Flask(__name__)
 db = TinyDB('weather_data.json')
+
+################# Set up app logging #################
+logger = logging.getLogger('RpiStationLogger')
+logger.setLevel(logging.INFO)
+
+handler = TimedRotatingFileHandler('rpi_station.log', when='D', interval=1, backupCount=7)
+handler.setLevel(logging.ERROR)
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+######################################################
 
 with app.app_context():
     dht22.init_sensor()
@@ -43,7 +58,8 @@ def scheduled_task(retries = 15, delay = 2):
                 return
         except Exception as e:
             print(f"[{time.ctime()}] Attempt {attempt + 1} failed: {e}")
-            time.sleep(delay + attempt)
+            logger.error(f"Scheduled task error on attempt {attempt + 1}: {e}")
+            time.sleep(delay)
  
 
 scheduler = BackgroundScheduler()
